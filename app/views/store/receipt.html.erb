@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Receipt</title>
+</head>
+<body>
+
+<table>
+	<h1>Receipt</h1>
+  <tr>
+    <th>Product</th>
+    <th>Quantity</th>
+  </tr>
+  
+    <% for p in @product_list %>
+  <tr>
+      <td><%= p['name'] %></td>
+      <td><%= p['quantity'] %></td>
+  </tr>
+    <% end %>
+</table>
+<br>
+<span style="font-weight: bold;">Total Price: </span>$<%= @total_price %><br>
+<span style="font-weight: bold;">Total Tax: </span>$<%= @total_tax %>
+</body>
+</html>

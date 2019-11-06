@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shopping Cart</title>
+
+    <script src="https://code.jquery.com/jquery-2.2.4.js" charset="utf-8"></script>
+
+</head>
+
+<body>
+    <div class="shopping-cart">
+        <!-- Title -->
+        <div class="title">
+            Shopping Bag
+        </div>
+
+        <div class="item_container" style="overflow: scroll;">
+            <% for p in @my_products do %>
+                <div class="item">
+                    <div class="description">
+                        <span id="item_<%= p[:Id] %>_name"><%= p[:Name] %></span>
+                        <span><%= p[:IsTaxExcempt] ? 'Tax Exempted' : 'w/Tax'  %></span>
+                        <span><%= p[:IsImported] ? 'Imported' : 'Not Imported' %></span>
+                    </div>
+                    <div class="quantity">
+                        <button class="plus-btn" type="button" name="button" id="item_<%= p[:Id] %>">
+                            <img src="plus.svg" alt="" />
+                        </button>
+                        <input type="text" name="value" value="0" id="item_quantity">
+                        <button class="minus-btn" type="button" name="button" id="item_<%= p[:Id] %>">
+                            <img src="minus.svg" alt="" />
+                        </button>
+                    </div>
+                    <div class="price" id="item_<%= p[:Id] %>_price">$
+                        <%= p[:Price] %>
+                    </div>
+                </div>
+                <% end %>
+        </div>
+        <div class="footer">
+            <div class="product_title">List of Products</div>
+            <form action="/store/receipt" method="GET">
+              <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                <input type="hidden" name="cart_products" id="cart" value="[]">
+                <table id='product_table'>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                    </tr>
+                </table>
+                <div class="submit_btn">
+                    <input type="submit" value="Buy" onclick="submitCartProducts()">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function submitCartProducts() {
+            var table = document.getElementById("product_table");
+            var cart_products = [];
+            for (var x = 1; x < table.rows.length; x++) {
+                var id = table.rows[x].id;
+                cart_products.push({
+                    id: (id.replace("item_", "")).replace("_row", ""),
+                    quantity: table.rows[x].cells[2].innerHTML
+                });
+            }
+            document.getElementById('cart').value = JSON.stringify(cart_products);
+        }
+        $('.minus-btn').on('click', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            var $input = $this.closest('div').find('input');
+            var value = parseInt($input.val());
+            var id = $this[0].id;
+            if (value > 1) {
+                value = value - 1;
+            } else {
+                value = 0;
+            }
+
+            $input.val(value);
+
+            var table = document.getElementById("product_table");
+            var exist_row = (table.rows.namedItem(id + "_row"));
+            if (exist_row !== null) {
+                var exist_quantity = table.rows[exist_row.rowIndex].cells[2].innerHTML;
+                if ((parseInt(exist_quantity)) > 1) {
+                    table.rows[exist_row.rowIndex].cells[2].innerHTML = value;
+                } else {
+                    table.deleteRow(exist_row.rowIndex);
+                }
+            }
+        });
+
+        $('.plus-btn').on('click', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            var $input = $this.closest('div').find('input');
+            var value = parseInt($input.val());
+            var id = $this[0].id;
+            if (value < 100) {
+                value = value + 1;
+            } else {
+                value = 100;
+            }
+
+            $input.val(value);
+            var table = document.getElementById("product_table");
+            var exist_row = (table.rows.namedItem(id + "_row"));
+            if (exist_row == null) {
+                var row = table.insertRow(table.rows.length);
+                row.id = id + "_row"
+                var name = row.insertCell(0);
+                var price = row.insertCell(1);
+                var quantity = row.insertCell(2);
+                quantity.id = id + "_quantity";
+                name.innerHTML = document.getElementById(id + "_name").innerHTML;
+                price.innerHTML = document.getElementById(id + "_price").innerHTML;
+                quantity.innerHTML = value;
+            } else {
+                table.rows[exist_row.rowIndex].cells[2].innerHTML = value;
+            }
+        });
+
+        $('.like-btn').on('click', function() {
+            $(this).toggleClass('is-active');
+        });
+    </script>
+</body>
+
+</html>
